@@ -43,8 +43,13 @@ import org.xml.sax.ErrorHandler;
 
 class MyParser {
     
-    static final String columnSeparator = "|*|";
     static DocumentBuilder builder;
+
+    private static BufferedWriter itemFileWriter;
+    private static BufferedWriter userFileWriter;
+    private static BufferedWriter categoryFileWriter;
+    private static BufferedWriter bidFileWriter;
+    private static int bidID = 0;
     
     static final String[] typeName = {
 	"none",
@@ -182,20 +187,80 @@ class MyParser {
         
         /* Fill in code here (you will probably need to write auxiliary
             methods). */
+        /**************************************************************/
+
         Element[] items = getElementsByTagNameNR(doc.getDocumentElement(), "Item");
         
-        for( int i=0; i<items.length; i++ ) {
-            Element item = items[i];
-            String itemID = item.getAttribute("ItemID");
-            String name = getElementTextByTagNameNR(item, "Name");
-            System.out.println(name);
-            System.out.println(itemID);
+        try {
+            for(int i = 0; i < items.length; i++) {
+                parseItem(items[i]);
+            }
         }
+
+        catch(IOException e) {
+            e.printStackTrace();
+        }   
         
-        /**************************************************************/
         
     }
+
+    static void parseItem(Element item) throws IOException {
+        String itemID = item.getAttribute("ItemID");
+        
+        Element seller = getElementByTagNameNR(item, "Seller");
+        String sellerID = seller.getAttribute("UserID");
+        
+        String name = getElementTextByTagNameNR(item, "Name");
+
+        String currently = strip(getElementTextByTagNameNR(item, "Currently"));
+        String buyPrice = strip(getElementTextByTagNameNR(item, "Buy_Price"));
+        String firstBid = strip(getElementTextByTagNameNR(item, "First_Bid"));
+        
+        String started = timestamp(getElementTextByTagNameNR(item, "Started"));
+        String ends = timestamp(getElementTextByTagNameNR(item, "Ends"));
+
+        String description = getElementTextByTagNameNR(item, "Description");
+        if (description.length()>4000) {
+            description = description.substring(0, 4000);
+        }
+        
+        writeToFile(itemFileWriter, itemID, sellerID, name, currently, buyPrice, 
+                    firstBid, started, ends, description);
+    }
+
+    private static String timestamp(String date) {
+        SimpleDateFormat format_in = new SimpleDateFormat("MMM-dd-yy HH:mm:ss");
+        SimpleDateFormat format_out = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        StringBuffer buffer = new StringBuffer();
+                                                                                  
+        try
+        {
+            Date parsedDate = format_in.parse(date);
+            return "" + format_out.format(parsedDate);
+        }
+        catch(ParseException pe) {
+            System.err.println("Parse error");
+            return "Parse error";
+        }
+    }
+
+    private static String formatRow(String[] input) {
+        String formattedOutput = "";
+        
+        int i = 0;
+        for (; i < input.length-1; i++) {
+            formattedOutput += input[i] + "|*|";
+        }
+        formattedOutput += input[i];
+
+        return formattedOutput;
+    }
     
+    private static void writeToFile(BufferedWriter output, String... args) throws IOException {
+        output.write(formatRow(args));
+        output.newLine();
+    }
+
     public static void main (String[] args) {
         if (args.length == 0) {
             System.out.println("Usage: java MyParser [file] [file] ...");
@@ -219,10 +284,20 @@ class MyParser {
             System.exit(2);
         }
         
-        /* Process all files listed on command line. */
-        for (int i = 0; i < args.length; i++) {
-            File currentFile = new File(args[i]);
-            processFile(currentFile);
+        try {
+            itemFileWriter = new BufferedWriter(new FileWriter("item.dat",true));
+
+            /* Process all files listed on command line. */
+            for (int i = 0; i < args.length; i++) {
+                File currentFile = new File(args[i]);
+                processFile(currentFile);
+            }
+            
+            itemFileWriter.close();
+        }
+
+        catch(IOException e) {
+            e.printStackTrace();    
         }
     }
 }
