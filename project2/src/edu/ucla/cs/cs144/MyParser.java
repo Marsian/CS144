@@ -194,6 +194,9 @@ class MyParser {
         try {
             for(int i = 0; i < items.length; i++) {
                 parseItem(items[i]);
+                parseUser(items[i]);
+                parseCategory(items[i]);
+                parseBid(items[i]);
             }
         }
 
@@ -204,6 +207,14 @@ class MyParser {
         
     }
 
+    /**
+     * Method to parse item information from xml data.
+     * For each item, extract the itemID, sellerID, name,
+     * currently price, buy price, first bid price, started date,
+     * end data and description.
+     * @param pass in the item Element.
+     * @throws IOException if there is an error in reading in the value.
+     */
     static void parseItem(Element item) throws IOException {
         String itemID = item.getAttribute("ItemID");
         
@@ -228,6 +239,94 @@ class MyParser {
                     firstBid, started, ends, description);
     }
 
+    /**
+     * Method to parse user information from xml data.
+     * First parse the user infromation from seller information. 
+     * Then iterate through bidding information and extract the 
+     * bidders' information.
+     * @param pass in the item Element.
+     * @throws IOException if there is an error in reading in the value.
+     */
+    static void parseUser(Element item) throws IOException {
+        Element user = getElementByTagNameNR(item, "Seller");
+        String userID = user.getAttribute("UserID");
+        String rating = user.getAttribute("Rating");
+
+        String location = getElementTextByTagNameNR(item, "Location");
+        String country = getElementTextByTagNameNR(item, "Country");
+
+        if (location == null)
+            location = "";
+        if (country == null)
+            country = "";
+
+        writeToFile(userFileWriter, userID, rating, location, country);
+
+        Element[] bids = getElementsByTagNameNR(getElementByTagNameNR(item, "Bids"), 
+                                                "Bid");
+        for (int i = 0; i < bids.length; i++) {
+            Element bidder = getElementByTagNameNR(bids[i], "Bidder");
+            userID = bidder.getAttribute("UserID");
+            rating = bidder.getAttribute("Rating");
+            location = getElementTextByTagNameNR(bidder, "Location");
+            country = getElementTextByTagNameNR(bidder, "Country");
+
+            if (location == null)
+                location = "";
+            if (country == null)
+                country = "";
+
+            writeToFile(userFileWriter, userID, rating, location, country);
+        }
+    }
+
+    /**
+     * Method to parse category information for each item from xml data.
+     * First get the itemID. Then iterate through all the categories.
+     * Each time write the itemID:category data to the file.
+     * @param pass in the item Element.
+     * @throws IOException if there is an error in reading in the value.
+     */
+    static void parseCategory(Element item) throws IOException {
+        String itemID = item.getAttribute("ItemID");
+
+        Element[] categories = getElementsByTagNameNR(item, "Category");
+        for( int i=0; i<categories.length; i++ ) {
+            String category = getElementText(categories[i]);
+
+            writeToFile(categoryFileWriter, itemID, category);
+        }
+    }
+    
+    /**
+     * Method to parse bid information for each bid from xml data.
+     * First get all the bids for the item.
+     * Iterate through the bids and extract their information.
+     * @param pass in the item Element.
+     * @throws IOException if there is an error in reading in the value.
+     */
+    static void parseBid(Element item) throws IOException {
+        Element[] bids = getElementsByTagNameNR(getElementByTagNameNR(item, "Bids"),
+                                                "Bid");
+        String itemID = item.getAttribute("ItemID");
+
+        for( int i=0; i<bids.length; i++ ){
+            Element bidder = getElementByTagNameNR(bids[i], "Bidder");
+            String userID = bidder.getAttribute("UserID");
+            String bid_time = getElementTextByTagNameNR(bids[i], "Time");
+            String time = "" + timestamp(bid_time);
+            
+            String amount = strip(getElementTextByTagNameNR(bids[i], "Amount"));
+
+            writeToFile(bidFileWriter,"" + bidID++, userID, itemID, time, amount);
+        }
+    }
+
+    /**
+     * Method to convert xml format date to MySql TIMESTAMP formate data.
+     * @param pass in xml formate data as String.
+     * @throws IOException if there is an error in reading in the value.
+     */
     private static String timestamp(String date) {
         SimpleDateFormat format_in = new SimpleDateFormat("MMM-dd-yy HH:mm:ss");
         SimpleDateFormat format_out = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -244,6 +343,12 @@ class MyParser {
         }
     }
 
+    /**
+     * Method to convert the input strings to MySql readible data.
+     * Combine all the strings to one line and, 
+     * and add column seperators.
+     * @param pass in all the information as strings.
+     */
     private static String formatRow(String[] input) {
         String formattedOutput = "";
         
@@ -256,6 +361,9 @@ class MyParser {
         return formattedOutput;
     }
     
+    /*
+     * Method to formate the strings and write them to the data file.
+     */
     private static void writeToFile(BufferedWriter output, String... args) throws IOException {
         output.write(formatRow(args));
         output.newLine();
@@ -286,6 +394,9 @@ class MyParser {
         
         try {
             itemFileWriter = new BufferedWriter(new FileWriter("item.dat",true));
+            userFileWriter = new BufferedWriter(new FileWriter("user.dat",true));
+            categoryFileWriter = new BufferedWriter(new FileWriter("category.dat",true));
+            bidFileWriter = new BufferedWriter(new FileWriter("bid.dat",true));
 
             /* Process all files listed on command line. */
             for (int i = 0; i < args.length; i++) {
@@ -294,6 +405,9 @@ class MyParser {
             }
             
             itemFileWriter.close();
+            userFileWriter.close();
+            categoryFileWriter.close();
+            bidFileWriter.close();
         }
 
         catch(IOException e) {
