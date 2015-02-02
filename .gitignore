@@ -13,3 +13,6 @@ hs_err_pid*
 
 # generated data file
 *.dat
+
+# zip file
+*.zip

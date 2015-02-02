@@ -31,7 +31,7 @@
     <target name="run" depends="compile">
         <java classname="edu.ucla.cs.cs144.MyParser" failonerror="true" fork="yes">
             <classpath refid="classpath"/>
-            <arg value="ebay-data/items-0.xml" />
+            <arg value="${env.EBAY_DATA}/items-0.xml" />
         </java>
     </target>
 
@@ -39,7 +39,7 @@
     <target name="run-all" depends="compile">
         <!-- set the property "ebaydata" to the space-separated list of files
              at $EBAY_DATA/items-*.xml" -->
-        <fileset id="ebay.files" dir="ebay-data" includes="items-*.xml"/>
+        <fileset id="ebay.files" dir="${env.EBAY_DATA}" includes="items-*.xml"/>
         <pathconvert property="ebaydata" pathsep=" " refid="ebay.files" />
         <java classname="edu.ucla.cs.cs144.MyParser" failonerror="true" fork="yes">
             <!-- pass the list of ebay data files as command line argument -->
