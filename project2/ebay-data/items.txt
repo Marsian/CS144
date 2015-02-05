@@ -1,6 +1,4 @@
-CS145, Spring 2003
-
-About the supplied auction data (/usr/class/cs145/ebay_data/items-?.xml):
+CS144 eBay Auction data
 
 The auction data for the project is gathered from real auctions on ebay.com.
 The data is organized into files items-?.xml, where each items-?.xml file
@@ -28,6 +26,8 @@ conform to the DTD given in the file items.dtd, reproduced here:
       <!ELEMENT Time	   (#PCDATA)>
       <!ELEMENT Amount	   (#PCDATA)>
   <!ELEMENT Location	   (#PCDATA)>
+    <!ATTLIST Location     Latitude  CDATA #IMPLIED
+                           Longitude CDATA #IMPLIED>
   <!ELEMENT Country	   (#PCDATA)>
   <!ELEMENT Started	   (#PCDATA)>
   <!ELEMENT Ends	   (#PCDATA)>
@@ -60,13 +60,11 @@ First_Bid: The minimum qualifying first-bid amount, as determined by the
 Number_of_Bids: Number of Bids/Bid elements, each corresponding to a bid.
 
 Bids/Bid/Bidder: Attribute UserID uniquely identifies a user. Attribute
-                 Rating is the user's rating. Note that a user may be a
-                 bidder in one auction and a seller in another. However, his
-                 Rating, Location, and Country information are the same
-                 wherever he appears in our data (which reflects a snapshot
-                 in time). Note this implies that UserID's with missing
-                 location or country information cannot be sellers in
-                 another auction.
+                 Rating is the bidder's rating. Location and Country child 
+                 elements have the bidder's location information.
+                 Note that a user may bid on multiple items. In that case,
+                 his Rating, Location, and Country information are 
+                 the same across all bids.
 
 Bids/Bid/Time: The time the bid was placed. Note that bids must be placed
                after the auction starts and before it ends. A user may bid
@@ -74,11 +72,11 @@ Bids/Bid/Time: The time the bid was placed. Note that bids must be placed
 
 Bids/Bid/Amount: Bid amount. 
 
-
-Location: The seller's location information (e.g., city, state). See comment
-	  under Bids/Bid/Bidder.
-
-Country: Seller's country. See comment under Bids/Bid/Bidder.
+Location/Country: The item's location information. Optionally, the 
+            Latitude and Longitude attributes of Location have the 
+            latitude and longitude information of the item's location.
+            When Location is a child element of a Bidder, it does not
+            have Latitude and Longitude attributes.
 
 Started: Auction start time.
 
@@ -86,7 +84,9 @@ Ends: Auction end time. If this is in the past with respect to the current
       system time, the auction is closed. If in the future, the auction is
       still open.
 
-Seller: Attributes give the seller's UserID and rating.
+Seller: Attributes give the seller's UserID and Rating. A user may have
+      two separate ratings as a bidder and a seller, in case the seller
+      is also bidding on other item(s).
 
 Description: The item's full description.
 

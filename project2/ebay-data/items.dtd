@@ -18,6 +18,8 @@
       <!ELEMENT Time	   (#PCDATA)>
       <!ELEMENT Amount	   (#PCDATA)>
   <!ELEMENT Location	   (#PCDATA)>
+    <!ATTLIST Location     Latitude  CDATA #IMPLIED
+                           Longitude CDATA #IMPLIED>    
   <!ELEMENT Country	   (#PCDATA)>
   <!ELEMENT Started	   (#PCDATA)>
   <!ELEMENT Ends	   (#PCDATA)>

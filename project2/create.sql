@@ -10,6 +10,10 @@ CREATE TABLE IF NOT EXISTS Item (
     FirstBid    DECIMAL(8,2) NOT NULL,
     Started     TIMESTAMP NOT NULL,
     Ends        TIMESTAMP NOT NULL,
+    Location    VARCHAR(100) NOT NULL,
+    Latitude    FLOAT NOT NULL,
+    Longitude   FlOAT NOT NULL,
+    Country     VARCHAR(100) NOT NULL,
     Description VARCHAR(4000) NOT NULL,
           
     PRIMARY KEY(ItemID)

@@ -230,13 +230,20 @@ class MyParser {
         String started = timestamp(getElementTextByTagNameNR(item, "Started"));
         String ends = timestamp(getElementTextByTagNameNR(item, "Ends"));
 
+        Element loc = getElementByTagNameNR(item, "Location");
+        String location = "" + getElementTextByTagNameNR(item, "Location");
+        String country = "" + getElementTextByTagNameNR(item, "Country");
+        String latitude = "" + loc.getAttribute("Latitude");
+        String longitude = "" + loc.getAttribute("Longitude");
+
         String description = getElementTextByTagNameNR(item, "Description");
         if (description.length()>4000) {
             description = description.substring(0, 4000);
         }
         
         writeToFile(itemFileWriter, itemID, sellerID, name, currently, buyPrice, 
-                    firstBid, started, ends, description);
+                    firstBid, started, ends, country, latitude, longitude, 
+                    country, description);
     }
 
     /**
