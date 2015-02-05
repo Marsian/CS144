@@ -27,9 +27,8 @@ CREATE TABLE IF NOT EXISTS ItemCountry (
 
 CREATE TABLE IF NOT EXISTS ItemGeo (
     ItemID int(11) NOT NULL,
-    g POINT NOT NULL,
+    g POINT NOT NULL
 
-    PRIMARY KEY(ItemID)
 ) ENGINE=MyISAM;
 
 -- Load geometry information from geo.dat
@@ -50,3 +49,26 @@ INSERT INTO ItemGeo (ItemID, g)
     SELECT ItemID,g 
         FROM ItemCountry INNER JOIN Geo
         WHERE ItemCountry.country=Geo.country;
+
+-- Create spatial index
+CALL create_index_if_not_exists();
+
+-- Funtion to create spatial index if not exist
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS create_index_if_not_exists $$
+CREATE PROCEDURE create_index_if_not_exists()
+BEGIN  
+    DECLARE IndexIsThere INTEGER;
+    
+    SELECT COUNT(1) INTO IndexIsThere
+        FROM information_schema.statistics 
+        WHERE TABLE_SCHEMA = 'CS144' AND TABLE_NAME = 'ItemGeo' AND 
+              INDEX_NAME = 'sp_index';
+    IF IndexIsThere = 0 THEN
+        CREATE SPATIAL INDEX sp_index ON ItemGeo (g);
+    END IF;
+
+END $$ 
+
+DELIMITER ;
