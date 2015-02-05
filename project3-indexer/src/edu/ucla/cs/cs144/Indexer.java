@@ -3,6 +3,7 @@ package edu.ucla.cs.cs144;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.File;
+import java.util.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,6 +32,7 @@ public class Indexer {
     public void rebuildIndexes() {
 
         Connection conn = null;
+        Connection c = null;
 
         // create a connection to the database to retrieve Items from MySQL
 	    try {
@@ -39,6 +41,11 @@ public class Indexer {
 	        System.out.println(ex);
 	    }
 
+        try {
+            c = DbManager.getConnection(true);
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
 
         /*
          * Add your code here to retrieve Items using the connection
@@ -62,24 +69,27 @@ public class Indexer {
             // create new indexwriter
             Directory indexDir = FSDirectory.open(new File("/var/lib/lucene/index"));
             IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_10_2, new StandardAnalyzer());
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
             IndexWriter indexWriter= new IndexWriter(indexDir, config);
 
-            // get all item information from the database
-            Statement state = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                    ResultSet.CONCUR_UPDATABLE );
+            Statement state = conn.createStatement();
             ResultSet items = state.executeQuery("SELECT * FROM Item");
-            ResultSet categories = null;
-            int i = 0;
+            PreparedStatement prepareState = conn.prepareStatement
+            (
+                 "SELECT * FROM ItemCategory WHERE ItemID=?"
+            );
 
+            int i = 0;
             while( items.next() ) {
                 String itemID = "" + items.getInt("ItemID");
-                System.out.println( itemID + " " + (i++) );
+                if( i++ % 500 == 0 ) 
+                    System.out.println( itemID + " " + i );
                 String name = items.getString("Name");
-                String category = "";
+                String category = null; 
                 String description = items.getString("Description");
 
-                Statement s = conn.createStatement();
-                categories = s.executeQuery("SELECT * FROM ItemCategory WHERE ItemID=" + itemID);
+                prepareState.setString( 1, itemID );
+                ResultSet categories = prepareState.executeQuery();
                 while( categories.next() ) {
                     category += (categories.getString("Category") + " ");
                 }
@@ -95,6 +105,7 @@ public class Indexer {
             }
 
             state.close();
+            prepareState.close();
             indexWriter.close();
         }
 
@@ -105,6 +116,7 @@ public class Indexer {
         // close the database connection
 	    try {
 	        conn.close();
+            c.close();
 	    } catch (SQLException ex) {
 	        System.out.println(ex);
 	    }
