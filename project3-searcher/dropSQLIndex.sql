@@ -3,9 +3,6 @@
 
 CALL drop_index_if_exists;
 DROP TABLE IF EXISTS ItemGeo;
-DROP TABLE IF EXISTS ItemCountry;
-DROP TABLE IF EXISTS Geo;
-DROP TABLE IF EXISTS Country;
 
 DELIMITER $$
 
