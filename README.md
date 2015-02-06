@@ -1,6 +1,6 @@
 # CS144
-# Yanxi Wang
-# 604249838
+Yanxi Wang
+604249838
 
 This project is to build a Web service and a Web site that allow users to search and navigate eBay bidding data. 
 The system manages all of its data at the back-end in the MySQL database and
