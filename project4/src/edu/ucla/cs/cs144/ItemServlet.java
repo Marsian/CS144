@@ -19,10 +19,11 @@ public class ItemServlet extends HttpServlet implements Servlet {
         String id = (String) request.getParameter("id");
         String xml = asc.getXMLDataForItemId( id );
         
-        ItemInfo it = new ItemInfo();
-        it.setItemId("123");
-        it.setName("H");
-        it.setDescription(xml);
+        XMLParser xp = new XMLParser();
+        ItemInfo it = xp.processString( xml );
+        //it.setItemId("123");
+        //it.setName("H");
+        //it.setDescription(xml);
         request.setAttribute( "itemInfo", it );
         request.getRequestDispatcher("/item.jsp").forward( request, response );
     }
