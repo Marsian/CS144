@@ -55,7 +55,16 @@
                     </tr>
                     <tr>
                         <td>Buy Price</td>
-                        <td><%= itemInfo.getBuyPrice() %></td>
+                        <td>
+                            <%= itemInfo.getBuyPrice() %>
+                            <%
+                                if( itemInfo.getBuyPrice() != "" ) {
+                                    %>
+                                        <button type="button" onClick="location.href='pay'">Pay Now</button>
+                                    <%
+                                }   
+                            %>
+                        </td>
                     </tr>
                     <tr>
                         <td>End Time</td>
